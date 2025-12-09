@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>wingdings 2</title>
+        <style>html{font-family:sans-serif}</style>
+    </head>
+    <body>
+        <h1>wingdings 2</h1><p>password-protect a text message by converting it to emoji</p><!--<hr />-->
+        <textarea id="text" placeholder="put text here to encrypt" rows="3" cols="68" spellcheck="false"></textarea><br /><button id="encrypt">↓↓↓ encrypt ↓↓↓</button>
+        <input type="text" id="password" placeholder="password"> <button id="generate">random password</button>
+        <button id="decrypt">↑↑↑ decrypt ↑↑↑</button><br /><textarea id="emoji" placeholder="put emoji here to decrypt" rows="3" cols="68" spellcheck="false"></textarea>
+    </body>
+    <script src="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.iife.min.js"></script>
+    <script>
+        const enc = new TextEncoder(); // UTF-8
+        const dec = new TextDecoder();
+        const w = enc.encode("wingdings2");
+        const emoji = new Ecoji();
+
+        function createRandomPassword() {
+            return window.crypto.getRandomValues(new Uint8Array(12)).toBase64({alphabet:"base64url"});
+        }
+
+        async function createKeyFromPassword(password) {
+            let passkey = await window.crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+            const opts = {name:"PBKDF2", salt: w, iterations: 1_000_000, hash: "SHA-256"};
+            return await window.crypto.subtle.deriveKey(opts, passkey, {name: "AES-GCM", length: 256}, false, ["encrypt", "decrypt"]);
+        }
+
+        async function encrypt(message, password) {
+            let key = await createKeyFromPassword(password);
+            let iv = window.crypto.getRandomValues(new Uint8Array(12));
+            let encrypted = await window.crypto.subtle.encrypt({name: "AES-GCM", iv: iv}, key, enc.encode(message));
+            return emoji.encode(iv).slice(0, -1) + emoji.encode(encrypted);
+        }
+
+        async function decrypt(message, password) {
+            let emojis = [...message];
+            let key = await createKeyFromPassword(password);
+            let iv = emoji.decode(emojis.slice(0, 10).join("")+"\u2615");
+            let encrypted = emoji.decode(emojis.slice(10).join(""));
+            let decrypted = await window.crypto.subtle.decrypt({name: "AES-GCM", iv: iv}, key, encrypted);
+            return dec.decode(decrypted);
+        }
+
+        const textbox = document.querySelector("#text");
+        const encbutton = document.querySelector("#encrypt");
+        const passbox = document.querySelector("#password");
+        const genbutton = document.querySelector("#generate");
+        const decbutton = document.querySelector("#decrypt");
+        const emojibox = document.querySelector("#emoji");
+
+        genbutton.addEventListener("click", evt => { passbox.value = createRandomPassword(); });
+        encbutton.addEventListener("click", async evt => { if (passbox.value.trim() != "") emojibox.value = await encrypt(textbox.value, passbox.value.trim()); });
+        decbutton.addEventListener("click", async evt => { if (passbox.value.trim() != "") textbox.value = await decrypt(emojibox.value, passbox.value.trim()); });
+    </script>
+</html>
