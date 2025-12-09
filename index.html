@@ -8,9 +8,10 @@
     </head>
     <body>
         <h1>wingdings 2</h1><p>password-protect a text message by converting it to emoji</p><!--<hr />-->
-        <textarea id="text" placeholder="put text here to encrypt" rows="3" cols="68" spellcheck="false"></textarea><br /><button id="encrypt">↓↓↓ encrypt ↓↓↓</button>
-        <input type="text" id="password" placeholder="password"> <button id="generate">random password</button>
-        <button id="decrypt">↑↑↑ decrypt ↑↑↑</button><br /><textarea id="emoji" placeholder="put emoji here to decrypt" rows="3" cols="68" spellcheck="false"></textarea>
+        <textarea id="text" placeholder="put text here to encrypt" rows="3" cols="42" spellcheck="false"></textarea><br />
+        <input type="text" id="password" placeholder="password"> <button id="generate">random password</button><br />
+        <button id="encrypt">↓↓↓ encrypt ↓↓↓</button><button id="decrypt">↑↑↑ decrypt ↑↑↑</button><br />
+        <textarea id="emoji" placeholder="put emoji here to decrypt" rows="5" cols="42" spellcheck="false"></textarea>
     </body>
     <script src="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.iife.min.js"></script>
     <script>
@@ -57,3 +58,4 @@
         decbutton.addEventListener("click", async evt => { if (passbox.value.trim() != "") textbox.value = await decrypt(emojibox.value, passbox.value.trim()); });
     </script>
 </html>
+
